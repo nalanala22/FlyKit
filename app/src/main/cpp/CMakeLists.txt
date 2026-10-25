@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(flykit SHARED
-  jni_bridge.cpp core/features.cpp hook/sigscan.cpp hook/hooks.cpp)
+  jni_bridge.cpp core/features.cpp hook/sigscan.cpp hook/hooks.cpp hook/elfinfo.cpp)
 target_link_libraries(flykit log)
 
 # Opsional: backend hook Dobby. Isi dengan path libdobby.a untuk ABI yang dibangun:

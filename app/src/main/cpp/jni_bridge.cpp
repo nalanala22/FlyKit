@@ -2,6 +2,7 @@
 #include <string>
 #include "core/config.h"
 #include "hook/hooks.h"
+#include "hook/elfinfo.h"
 
 namespace {
 // Salin jstring -> std::string dengan aman (null / OOM tidak membuat crash).
@@ -30,5 +31,10 @@ JNIEXPORT jboolean JNICALL Java_dev_flykit_NativeBridge_nativeSetFloat(JNIEnv* e
 }
 JNIEXPORT jboolean JNICALL Java_dev_flykit_NativeBridge_nativeSetInt(JNIEnv* env, jclass, jstring k, jint v) {
   std::string key; return toStd(env, k, key) && fk::Config::get().setInt(key, v);
+}
+JNIEXPORT jstring JNICALL Java_dev_flykit_NativeBridge_nativeElfReport(JNIEnv* env, jclass, jstring path) {
+  std::string p;
+  if (!toStd(env, path, p)) return env->NewStringUTF("path kosong\n");
+  return env->NewStringUTF(fk::elfReportDefault(p.c_str()).c_str());
 }
 }  // extern "C"

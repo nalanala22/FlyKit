@@ -1,8 +1,14 @@
 package dev.flykit
 
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.graphics.Typeface
+import android.widget.Toast
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.SeekBar
@@ -11,6 +17,8 @@ import android.widget.TextView
 
 class MainActivity : Activity() {
     private lateinit var prefs: SharedPreferences
+    private lateinit var exportStatus: TextView
+    private val reqTree = 42
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,7 +46,56 @@ class MainActivity : Activity() {
         root.addView(toggle("Blink", "blink"))
         root.addView(slider("Batas tahan blink (tick)", "blink_max_ticks", 10f, 200f, 100f, true))
 
+        val reportView = TextView(this).apply {
+            setTextIsSelectable(true)
+            textSize = 11f
+            typeface = Typeface.MONOSPACE
+        }
+        root.addView(Button(this).apply {
+            text = "Buat laporan library Minecraft"
+            setOnClickListener {
+                isEnabled = false
+                reportView.text = "Memproses, tunggu sebentar..."
+                Thread {
+                    val r = try { LibReport.build(this@MainActivity) } catch (t: Throwable) { "Error: $t" }
+                    runOnUiThread {
+                        reportView.text = r
+                        isEnabled = true
+                        val cm = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+                        cm.setPrimaryClip(ClipData.newPlainText("laporan", r))
+                        Toast.makeText(this@MainActivity, "Laporan disalin ke clipboard", Toast.LENGTH_SHORT).show()
+                    }
+                }.start()
+            }
+        })
+        root.addView(reportView)
+
+        exportStatus = TextView(this)
+        root.addView(Button(this).apply {
+            text = "Ekspor library Minecraft"
+            isEnabled = mc != null
+            setOnClickListener { startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), reqTree) }
+        })
+        root.addView(exportStatus)
+
         setContentView(ScrollView(this).apply { addView(root) })
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != reqTree || resultCode != RESULT_OK) return
+        val tree = data?.data ?: return
+        val mc = McEnvironment.query(this) ?: return
+        exportStatus.text = "Mengekspor... (bisa beberapa menit, jangan tutup aplikasi)"
+        Thread {
+            val msg = try {
+                LibExporter.export(this, mc, tree)
+            } catch (e: Exception) {
+                "Gagal: ${e.message}"
+            }
+            runOnUiThread { exportStatus.text = msg }
+        }.start()
     }
 
     private fun toggle(label: String, key: String) = Switch(this).apply {

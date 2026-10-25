@@ -24,6 +24,9 @@ object NativeBridge {
     fun setFloat(key: String, v: Float): Boolean = loaded && nativeSetFloat(key, v)
     fun setInt(key: String, v: Int): Boolean = loaded && nativeSetInt(key, v)
 
+    fun elfReport(path: String): String = if (loaded) nativeElfReport(path) else "library native tidak dimuat"
+
+    @JvmStatic private external fun nativeElfReport(path: String): String
     @JvmStatic private external fun nativeInit(mcVersion: String): Int
     @JvmStatic private external fun nativeSetBool(key: String, v: Boolean): Boolean
     @JvmStatic private external fun nativeSetFloat(key: String, v: Float): Boolean
