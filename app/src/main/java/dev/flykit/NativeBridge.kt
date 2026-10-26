@@ -27,6 +27,9 @@ object NativeBridge {
     fun elfReport(path: String): String = if (loaded) nativeElfReport(path) else "library native tidak dimuat"
 
     @JvmStatic private external fun nativeElfReport(path: String): String
+    fun probe(): String = if (loaded) nativeProbe() else "library flykit tidak dimuat"
+
+    @JvmStatic private external fun nativeProbe(): String
     @JvmStatic private external fun nativeInit(mcVersion: String): Int
     @JvmStatic private external fun nativeSetBool(key: String, v: Boolean): Boolean
     @JvmStatic private external fun nativeSetFloat(key: String, v: Float): Boolean

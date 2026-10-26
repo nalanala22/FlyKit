@@ -2,6 +2,7 @@
 #include <string>
 #include "core/config.h"
 #include "hook/hooks.h"
+#include "hook/probe.h"
 #include "hook/elfinfo.h"
 
 namespace {
@@ -22,6 +23,9 @@ JNIEXPORT jint JNICALL Java_dev_flykit_NativeBridge_nativeInit(JNIEnv* env, jcla
   std::string v;
   if (!toStd(env, ver, v)) return static_cast<jint>(fk::InitStatus::UnsupportedVersion);
   return static_cast<jint>(fk::installHooks(v.c_str()));
+}
+JNIEXPORT jstring JNICALL Java_dev_flykit_NativeBridge_nativeProbe(JNIEnv* env, jclass) {
+  return env->NewStringUTF(fk::probeMinecraft().c_str());
 }
 JNIEXPORT jboolean JNICALL Java_dev_flykit_NativeBridge_nativeSetBool(JNIEnv* env, jclass, jstring k, jboolean v) {
   std::string key; return toStd(env, k, key) && fk::Config::get().setBool(key, v == JNI_TRUE);

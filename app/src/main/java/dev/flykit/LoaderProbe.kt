@@ -60,6 +60,8 @@ object LoaderProbe {
         } catch (t: Throwable) {
             log("GAGAL tahap 3: ${describe(t)}")
         }
+        log("Tahap 4: pemeriksaan memori native")
+        log(try { NativeBridge.probe() } catch (t: Throwable) { "GAGAL tahap 4: ${describe(t)}" })
         log("Selesai")
         return f.readText()
     }
