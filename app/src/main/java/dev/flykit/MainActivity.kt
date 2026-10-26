@@ -104,6 +104,23 @@ class MainActivity : Activity() {
             }
         })
         root.addView(probeView)
+        root.addView(Button(this).apply {
+            text = "Ambil log crash"
+            setOnClickListener {
+                isEnabled = false
+                probeView.text = "Membaca log..."
+                Thread {
+                    val r = LogDump.crashLines()
+                    runOnUiThread {
+                        probeView.text = r
+                        isEnabled = true
+                        val cm = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+                        cm.setPrimaryClip(ClipData.newPlainText("log crash", r))
+                        Toast.makeText(this@MainActivity, "Log disalin ke clipboard", Toast.LENGTH_SHORT).show()
+                    }
+                }.start()
+            }
+        })
 
         setContentView(ScrollView(this).apply { addView(root) })
     }
