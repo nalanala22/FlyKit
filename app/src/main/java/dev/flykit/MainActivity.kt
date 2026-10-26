@@ -78,6 +78,33 @@ class MainActivity : Activity() {
         })
         root.addView(exportStatus)
 
+        val probeView = TextView(this).apply {
+            setTextIsSelectable(true)
+            textSize = 11f
+            typeface = Typeface.MONOSPACE
+            val prev = LoaderProbe.lastLog(this@MainActivity)
+            text = if (prev.isBlank()) "" else "Hasil uji loader sebelumnya:\n$prev"
+        }
+        root.addView(Button(this).apply {
+            text = "Uji loader (muat kode Minecraft)"
+            isEnabled = mc != null
+            setOnClickListener {
+                isEnabled = false
+                probeView.text = "Menguji... Jika aplikasi menutup sendiri, buka lagi: tahap terakhir tampil di sini."
+                Thread {
+                    val r = try { LoaderProbe.run(this@MainActivity) } catch (t: Throwable) { "Error: $t" }
+                    runOnUiThread {
+                        probeView.text = r
+                        isEnabled = true
+                        val cm = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+                        cm.setPrimaryClip(ClipData.newPlainText("uji loader", r))
+                        Toast.makeText(this@MainActivity, "Hasil disalin ke clipboard", Toast.LENGTH_SHORT).show()
+                    }
+                }.start()
+            }
+        })
+        root.addView(probeView)
+
         setContentView(ScrollView(this).apply { addView(root) })
     }
 
