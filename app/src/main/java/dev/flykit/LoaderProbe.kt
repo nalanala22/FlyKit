@@ -1,6 +1,7 @@
 package dev.flykit
 
 import android.content.Context
+import android.content.pm.PackageManager
 import java.io.File
 import java.util.Date
 
@@ -50,6 +51,8 @@ object LoaderProbe {
         }
         log("OK tahap 2: kelas dimuat. Rantai induk: ${chain(cls)}")
 
+        log(permissionDiff(ctx))
+
         log("Tahap 3: inisialisasi statis kelas (dapat memuat library native; bila aplikasi menutup sendiri, berhenti di sini)")
         try {
             Class.forName(MAIN_CLASS, true, cl)
@@ -59,6 +62,23 @@ object LoaderProbe {
         }
         log("Selesai")
         return f.readText()
+    }
+
+    private fun permissionDiff(ctx: Context): String {
+        return try {
+            val pm = ctx.packageManager
+            @Suppress("DEPRECATION")
+            val mc = pm.getPackageInfo(McEnvironment.PKG, PackageManager.GET_PERMISSIONS).requestedPermissions
+                ?: emptyArray()
+            @Suppress("DEPRECATION")
+            val ours = (pm.getPackageInfo(ctx.packageName, PackageManager.GET_PERMISSIONS).requestedPermissions
+                ?: emptyArray()).toSet()
+            val missing = mc.filter { it !in ours }
+            "Izin diminta Minecraft: ${mc.size}. Belum ada di FlyKit: " +
+                (if (missing.isEmpty()) "(tidak ada)" else missing.joinToString(", "))
+        } catch (t: Throwable) {
+            "Gagal membaca daftar izin: $t"
+        }
     }
 
     private fun chain(c: Class<*>): String {
